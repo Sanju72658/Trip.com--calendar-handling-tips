@@ -1,0 +1,217 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# Set up the Chrome driver
+service = Service(executable_path='/path/to/chromedriver')  # Replace with your chromedriver path
+driver = webdriver.Chrome()
+
+# Open the URL
+driver.get("https://uk.trip.com/?locale=en-gb")
+
+# Optionally, maximize the window
+driver.maximize_window()
+
+# Wait for the page to load and verify the text in the element
+try:
+    # Wait for the slogan element to be visible
+    slogan_element = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//div[@class="slogan-desc"]'))
+    )
+
+    # Get the text from the element
+    slogan_text = slogan_element.text
+
+    # Verify the text
+    if slogan_text == "Your Trip Starts Here":
+        print("Trip.com page successfully loaded!")
+    else:
+        print(f"Error: Slogan text is incorrect. Expected 'Your Trip Starts Here', but got '{slogan_text}'.")
+except Exception as e:
+    print("Error: Page did not load properly or element not found.")
+    print("Exception:", e)
+
+# Wait for the search box to be visible and enter 'LGW'
+try:
+    # Wait for the search box to be visible
+    search_box = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//div[@class="fuzzy-input"]//input[@data-testid="search_city_from0"]'))
+    )
+
+    # Enter 'LGW' into the search box
+    search_box.send_keys("LGW")
+    print("Successfully entered 'LGW' into the search box.")
+except Exception as e:
+    print("Error: Could not find or interact with the search box.")
+    print("Exception:", e)
+
+# Wait for the suggestion box to appear and extract the list of airports
+try:
+    # Wait for the suggestion box to be visible
+    suggestion_box = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//ul[@class="poi-list-wrapper-v2"]'))
+    )
+
+    # Find all airport suggestions in the dropdown
+    airport_suggestions = suggestion_box.find_elements(By.XPATH, './/li[@class="poi-result__airport color-gray85"]')
+
+    # Print the list of airports
+    print("List of airports in the dropdown:")
+    for airport in airport_suggestions:
+        airport_name = airport.find_element(By.XPATH, './/span[@class="airport__name"]').text
+        airport_code = airport.find_element(By.XPATH, './/span[@class="airport__codePost"]').text
+        print(f"Airport: {airport_name}, Code: {airport_code}")
+
+    # Click on the option with the text 'Heathrow'
+    for airport in airport_suggestions:
+        airport_name = airport.find_element(By.XPATH, './/span[@class="airport__name"]').text
+        if "Heathrow" in airport_name:
+            airport.click()
+            print(f"Successfully clicked on '{airport_name}'.")
+
+except Exception as e:
+    print("Error: Could not find or interact with the suggestion box.")
+    print("Exception:", e)
+
+# Wait for the "Going to" search box to be visible and enter 'COK'
+try:
+    # Wait for the search box to be visible
+    search_box_to = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//div[@class="fuzzy-input"]//input[@data-testid="search_city_to0"]'))
+    )
+
+    # Add a small wait before entering text (e.g., 2 seconds)
+    import time
+    time.sleep(2)  # Optional: Add a delay to simulate user interaction
+
+    # Enter 'COK' into the search box
+    search_box_to.send_keys("COK")
+    print("Successfully entered 'COK' into the 'Going to' search box.")
+except Exception as e:
+    print("Error: Could not find or interact with the 'Going to' search box.")
+    print("Exception:", e)
+
+# Wait for the suggestion box to appear and extract the list of airports
+try:
+    # Wait for the suggestion box to be visible
+    suggestion_box = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//ul[@class="poi-list-wrapper-v2"]'))
+    )
+
+    # Find all airport suggestions in the dropdown
+    airport_suggestions = suggestion_box.find_elements(By.XPATH, './/li[@class="poi-result__airport color-gray85"]')
+
+    # Print the list of airports
+    print("List of airports in the dropdown:")
+    for airport in airport_suggestions:
+        airport_name = airport.find_element(By.XPATH, './/span[@class="airport__name"]').text
+        airport_code = airport.find_element(By.XPATH, './/span[@class="airport__codePost"]').text
+        print(f"Airport: {airport_name}, Code: {airport_code}")
+
+    # Click on the option with the text 'Cochin International Airport'
+    for airport in airport_suggestions:
+        airport_name = airport.find_element(By.XPATH, './/span[@class="airport__name"]').text
+        if "Cochin International Airport" in airport_name:
+            airport.click()
+            print(f"Successfully clicked on '{airport_name}'.")
+
+except Exception as e:
+    print("Error: Could not find or interact with the suggestion box.")
+    print("Exception:", e)
+
+time.sleep(3)
+
+# Wait for the calendar input field to be visible and click to open the calendar
+try:
+    # Wait for the calendar input field to be visible
+    calendar_input = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//li[@class="m-searchForm__item segment-date flex"]//input[@data-testid="search_date_depart0"]'))
+    )
+
+    # Click on the calendar input field to open the calendar
+    calendar_input.click()
+    print("Successfully clicked on the calendar input field to open the calendar.")
+except Exception as e:
+    print("Error: Could not find or interact with the calendar input field.")
+    print("Exception:", e)
+
+# Function to check and select a date
+def select_date(target_month, target_year, target_day):
+    while True:
+        try:
+            # Wait for the calendar to be visible
+            WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.XPATH, '//div[@class="c-calendar__body"]'))
+            )
+
+            # Get the current visible month and year
+            current_month_element = driver.find_element(By.XPATH, '//div[@class="c-calendar-month"]//div[@class="c-calendar-month__title"]')
+            current_month_text = current_month_element.text
+
+            # Split the month and year text
+            if current_month_text:
+                current_month, current_year = current_month_text.split()
+            else:
+                print("Error: Could not retrieve the current month and year.")
+                return False
+
+            # Check if the current month and year match the target
+            if current_month == target_month and current_year == target_year:
+                print(f"Navigated to {target_month} {target_year}.")
+                try:
+                    # Locate and click on the target date
+                    date_element = driver.find_element(By.XPATH, f'//div[@class="c-calendar-month" and contains(., "{target_month} {target_year}")]//div[@class="c-calendar-month__days"]//li[contains(@class, "in-range") and .//span[text()="{target_day}"]]')
+                    date_element.click()
+                    print(f"Successfully selected the date: {target_month} {target_day}, {target_year}.")
+                    return True
+                except Exception as e:
+                    print(f"Error: Could not find or interact with the date {target_month} {target_day}, {target_year}.")
+                    print("Exception:", e)
+                    return False
+
+            # Check if the target month is already visible in the calendar (e.g., for consecutive months)
+            next_month_element = driver.find_elements(By.XPATH, '//div[@class="c-calendar-month"]//div[@class="c-calendar-month__title"]')
+            if len(next_month_element) > 1:
+                next_month_text = next_month_element[1].text
+                if next_month_text:
+                    next_month, next_year = next_month_text.split()
+                    if next_month == target_month and next_year == target_year:
+                        print(f"Navigated to {target_month} {target_year}.")
+                        try:
+                            # Locate and click on the target date
+                            date_element = driver.find_element(By.XPATH, f'//div[@class="c-calendar-month" and contains(., "{target_month} {target_year}")]//div[@class="c-calendar-month__days"]//li[contains(@class, "in-range") and .//span[text()="{target_day}"]]')
+                            date_element.click()
+                            print(f"Successfully selected the date: {target_month} {target_day}, {target_year}.")
+                            return True
+                        except Exception as e:
+                            print(f"Error: Could not find or interact with the date {target_month} {target_day}, {target_year}.")
+                            print("Exception:", e)
+                            return False
+
+            # Click the "next" button to move to the next month
+            next_button = driver.find_element(By.XPATH, '//span[@class="c-calendar-icon-next"]')
+            next_button.click()
+            print(f"Navigating from {current_month} {current_year} to the next month...")
+        except Exception as e:
+            print("Error: Could not interact with the calendar.")
+            print("Exception:", e)
+            return False
+
+# Select the departure date (August 21, 2025)
+if select_date("Aug", "2025", "21"):
+    print("Departure date selected successfully.")
+else:
+    print("Failed to select the departure date.")
+
+# Select the return date (September 21, 2025)
+if select_date("Dec", "2025", "21"):
+    print("Return date selected successfully.")
+else:
+    print("Failed to select the return date.")
+
+time.sleep(5)
+
+# Close the browser
+driver.quit()
